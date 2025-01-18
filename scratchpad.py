@@ -1,25 +1,30 @@
-"""
-Use this file to test concepts before trying to implement them in the code and
-breaking things.
-"""
 import argparse
+import datetime
+from pathlib import Path
 
-parser = argparse.ArgumentParser(prog="wahoo", description="squarin' a number, yeein the haws")
-group = parser.add_mutually_exclusive_group()
+parser = argparse.ArgumentParser()
 
-group.add_argument("-v", "--verbose", action="store_true")
-group.add_argument("-q", "--quiet", action="store_true")
+parser.add_argument("path")
 
-parser.add_argument("x", type=int, help="the base")
-parser.add_argument("y", type=int, help="the exponent")
+parser.add_argument("-l", "--long", action="store_true")
 
 args = parser.parse_args()
 
-answer = args.x**args.y
+target_dir = Path(args.path)
 
-if args.quiet:
-    print(answer)
-elif args.verbose:
-    print(f"{args.x} to the power {args.y} equals {answer}")
-else:
-    print(f"{args.x}^{args.y} == {answer}")
+if not target_dir.exists():
+    print("The target directory doesn't exist")
+    raise SystemExit(1)
+
+def build_output(entry, long=False):
+    if long:
+        size = entry.stat().st_size
+        date = datetime.datetime.fromtimestamp(
+            entry.stat().st_mtime).strftime(
+            "%b %d %H:%M:%S"
+        )
+        return f"{size:>6d} {date} {entry.name}"
+    return entry.name
+
+for entry in target_dir.iterdir():
+    print(build_output(entry, long=args.long))
